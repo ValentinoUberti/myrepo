@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: "myrepo-app"
+  name: "myrepo-app"
+  namespace: myrepo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "myrepo-app"
+  template:
+    metadata:
+      labels:
+        app: "myrepo-app"
+    spec:
+      containers:
+      - image: quay.io/brancz/prometheus-example-app:v0.2.0
+        imagePullPolicy: IfNotPresent
+        name: "myrepo-app"
+        livenessProbe:
+            httpGet:
+              path: /
+              port: 8081
+              scheme: HTTP
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: "myrepo-app"
+  name: "myrepo-app"
+  namespace: myrepo
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+    name: web
+  selector:
+    app: "myrepo-app"
+  type: ClusterIP
